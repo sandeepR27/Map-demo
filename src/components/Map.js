@@ -557,21 +557,445 @@
 
 // export default MapComponent;
 
+//finely working code
+// import React, { useEffect, useState } from 'react';
+
+// const Map = () => {
+//   const [map, setMap] = useState(null);
+//   const [directionsService, setDirectionsService] = useState(null);
+//   const [directionsRenderer, setDirectionsRenderer] = useState(null);
+//   const [currentLocationMarker, setCurrentLocationMarker] = useState(null);
+//   const [nearestParkingLocation, setNearestParkingLocation] = useState(null);
+//   const [parkingSlotCapacity, setParkingSlotCapacity] = useState(null);
+//   const [distanceToParking, setDistanceToParking] = useState(null);
+//   const [bookingQuantity, setBookingQuantity] = useState(0);
+
+//   useEffect(() => {
+//     // Initialize the map and set current location marker
+//     if (!map) {
+//       if (navigator.geolocation) {
+//         navigator.geolocation.getCurrentPosition(position => {
+//           const currentLocation = {
+//             lat: position.coords.latitude,
+//             lng: position.coords.longitude
+//           };
+//           const mapInstance = new window.google.maps.Map(document.getElementById('map'), {
+//             center: currentLocation, // Set center to user's current location
+//             zoom: 15,
+//           });
+//           setMap(mapInstance);
+  
+//           const marker = new window.google.maps.Marker({
+//             position: currentLocation,
+//             map: mapInstance,
+//             title: "Your Location"
+//           });
+//           setCurrentLocationMarker(marker);
+
+//           // Hardcoded parking location
+//           const parkingLocation = {
+//             lat: 11.0548,
+//             lng: 76.9941
+//           };
+//           setNearestParkingLocation(parkingLocation);
+
+//           // Hardcoded parking slot capacity
+//           setParkingSlotCapacity(5); // Assume there are 50 parking slots available
+
+//           // Calculate distance to parking location
+//           const directionsServiceInstance = new window.google.maps.DirectionsService();
+//           directionsServiceInstance.route(
+//             {
+//               origin: currentLocation,
+//               destination: parkingLocation,
+//               travelMode: 'DRIVING',
+//             },
+//             (response, status) => {
+//               if (status === 'OK') {
+//                 const distance = response.routes[0].legs[0].distance.text;
+//                 setDistanceToParking(distance);
+//               } else {
+//                 console.error('Directions request failed due to ' + status);
+//               }
+//             }
+//           );
+//         }, error => {
+//           console.error('Error getting current location:', error);
+//         });
+//       } else {
+//         console.error('Geolocation is not supported by this browser.');
+//       }
+
+//     }
+//   }, [map]);
+
+//   useEffect(() => {
+//     // Display route to nearest parking location
+//     if (map && nearestParkingLocation) {
+//       const directionsServiceInstance = new window.google.maps.DirectionsService();
+//       const directionsRendererInstance = new window.google.maps.DirectionsRenderer();
+//       setDirectionsService(directionsServiceInstance);
+//       setDirectionsRenderer(directionsRendererInstance);
+
+//       directionsRendererInstance.setMap(map);
+
+//       directionsServiceInstance.route(
+//         {
+//           origin: currentLocationMarker.getPosition(), // Use current location as origin
+//           destination: nearestParkingLocation,
+//           travelMode: 'DRIVING',
+//         },
+//         (response, status) => {
+//           if (status === 'OK') {
+//             directionsRendererInstance.setDirections(response);
+//           } else {
+//             console.error('Directions request failed due to ' + status);
+//           }
+//         }
+//       );
+//     }
+//   }, [map, nearestParkingLocation, currentLocationMarker]);
+
+//   const handleBooking = () => {
+//     if (bookingQuantity > 0 && bookingQuantity <= parkingSlotCapacity) {
+//       setParkingSlotCapacity(prevCapacity => prevCapacity - bookingQuantity);
+//       setBookingQuantity(0);
+//     } else {
+//       alert('Please enter a valid booking quantity.');
+//     }
+//   };
+
+//   return (
+//     <div>
+//       <div id="map" style={{ height: '570px', width: '100%', marginTop: '10px' }} />
+//       {parkingSlotCapacity && <p>Parking Slot Capacity: {parkingSlotCapacity}</p>}
+//       {distanceToParking && <p>Distance to Parking: {distanceToParking}</p>}
+//       <input 
+//         type="number" 
+//         value={bookingQuantity} 
+//         onChange={(e) => setBookingQuantity(parseInt(e.target.value))}
+//         placeholder="Enter quantity"
+//         min="0"
+//       />
+//       <button onClick={handleBooking}>Book Slots</button>
+      
+//     </div>
+//   );
+// };
+
+// export default Map;
+
+
+// import React, { useEffect, useState } from 'react';
+// import axios from 'axios';
+
+// const Map = () => {
+//   const [map, setMap] = useState(null);
+//   const [directionsService, setDirectionsService] = useState(null);
+//   const [directionsRenderer, setDirectionsRenderer] = useState(null);
+//   const [currentLocationMarker, setCurrentLocationMarker] = useState(null);
+//   const [nearestParkingLocation, setNearestParkingLocation] = useState(null);
+//   const [parkingSlotCapacity, setParkingSlotCapacity] = useState(null);
+//   const [distanceToParking, setDistanceToParking] = useState(null);
+//   const [bookingQuantity, setBookingQuantity] = useState(0);
+
+  
+//   useEffect(() => {
+//     // Initialize the map and set current location marker
+//     if (!map) {
+//         if (navigator.geolocation) {
+//             navigator.geolocation.getCurrentPosition(position => {
+//                 const currentLocation = {
+//                     lat: position.coords.latitude,
+//                     lng: position.coords.longitude
+//                 };
+//                 const mapInstance = new window.google.maps.Map(document.getElementById('map'), {
+//                     center: currentLocation, // Set center to user's current location
+//                     zoom: 15,
+//                 });
+//                 setMap(mapInstance);
+
+//                 const marker = new window.google.maps.Marker({
+//                     position: currentLocation,
+//                     map: mapInstance,
+//                     title: "Your Location"
+//                 });
+//                 setCurrentLocationMarker(marker);
+
+//                 // Fetch parking slots from the backend
+//                 axios.get('http://localhost:4000/parking-slots')
+//                     .then(response => {
+//                         // Choose the nearest parking location
+//                         const nearestParking = findNearestParking(currentLocation, response.data);
+//                         setNearestParkingLocation(nearestParking.location);
+//                         setParkingSlotCapacity(nearestParking.capacity);
+
+//                         // Calculate distance to parking location
+//                         const distance = calculateDistance(currentLocation.lat, currentLocation.lng, nearestParking.location.lat, nearestParking.location.lng);
+//                         setDistanceToParking(distance);
+
+//                         // Display route to nearest parking location
+//                         const directionsServiceInstance = new window.google.maps.DirectionsService();
+//                         const directionsRendererInstance = new window.google.maps.DirectionsRenderer({
+//                             map: mapInstance,
+//                             suppressMarkers: true // Do not display default markers for the route
+//                         });
+//                         setDirectionsService(directionsServiceInstance);
+//                         setDirectionsRenderer(directionsRendererInstance);
+
+//                         directionsServiceInstance.route(
+//                             {
+//                                 origin: currentLocation,
+//                                 destination: nearestParking.location,
+//                                 travelMode: 'DRIVING',
+//                             },
+//                             (response, status) => {
+//                                 if (status === 'OK') {
+//                                     directionsRendererInstance.setDirections(response);
+//                                 } else {
+//                                     console.error('Directions request failed due to ' + status);
+//                                 }
+//                             }
+//                         );
+//                     })
+//                     .catch(error => {
+//                         console.error('Error fetching parking slots:', error);
+//                     });
+//             }, error => {
+//                 console.error('Error getting current location:', error);
+//             },{ enableHighAccuracy: true });
+//         } else {
+//             console.error('Geolocation is not supported by this browser.');
+//         }
+//     }
+// }, [map]);
+
+//   // Function to calculate distance between two points using Haversine formula
+//   const calculateDistance = (lat1, lon1, lat2, lon2) => {
+//     const R = 6371; // Radius of the Earth in kilometers
+//     const dLat = (lat2 - lat1) * Math.PI / 180;
+//     const dLon = (lon2 - lon1) * Math.PI / 180;
+//     const a =
+//         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+//         Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+//         Math.sin(dLon / 2) * Math.sin(dLon / 2);
+//     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+//     const distance = R * c; // Distance in kilometers
+//     return distance;
+//   };
+
+//   // Function to find the nearest parking location
+//   const findNearestParking = (currentLocation, parkingSlots) => {
+//     let minDistance = Infinity;
+//     let nearestParking = null;  
+
+//     parkingSlots.forEach(slot => {
+//       const distance = calculateDistance(currentLocation.lat, currentLocation.lng, slot.location.lat, slot.location.lng);
+//       if (distance < minDistance) {
+//         minDistance = distance;
+//         nearestParking = slot;
+//       }
+//     });
+
+//     return nearestParking;
+//   };
+
+//   const handleBooking = () => {
+//     if (bookingQuantity > 0 && bookingQuantity <= parkingSlotCapacity) {
+//       setParkingSlotCapacity(prevCapacity => prevCapacity - bookingQuantity);
+//       setBookingQuantity(0);
+//     } else {
+//       alert('Please enter a valid booking quantity.');
+//     }
+//   };
+
+//   return (
+//     <div>
+//       <div id="map" style={{ height: '570px', width: '100%', marginTop: '10px' }} />
+//       {parkingSlotCapacity && <p>Parking Slot Capacity: {parkingSlotCapacity}</p>}
+//       {distanceToParking && <p>Distance to Parking: {distanceToParking.toFixed(2)} km</p>}
+//       <input 
+//         type="number" 
+//         value={bookingQuantity} 
+//         onChange={(e) => setBookingQuantity(parseInt(e.target.value))}
+//         placeholder="Enter quantity"
+//         min="0"
+//       />
+//       <button onClick={handleBooking}>Book Slots</button>
+//     </div>
+//   );
+// };
+
+// export default Map;
+
+// import React, { useEffect, useState } from 'react';
+// import axios from 'axios';
+
+// const Map = () => {
+//   const [map, setMap] = useState(null);
+//   const [directionsService, setDirectionsService] = useState(null);
+//   const [directionsRenderer, setDirectionsRenderer] = useState(null);
+//   const [currentLocationMarker, setCurrentLocationMarker] = useState(null);
+//   const [nearestParkingLocation, setNearestParkingLocation] = useState(null);
+//   const [parkingSlotCapacity, setParkingSlotCapacity] = useState(null);
+//   const [distanceToParking, setDistanceToParking] = useState(null);
+//   const [bookingQuantity, setBookingQuantity] = useState(0);
+//   const [parkingSlots, setParkingSlots] = useState([]);
+
+//   useEffect(() => {
+//     if (!map) {
+//       if (navigator.geolocation) {
+//         navigator.geolocation.getCurrentPosition(position => {
+//           const currentLocation = {
+//             lat: position.coords.latitude,
+//             lng: position.coords.longitude
+//           };
+
+//           const mapInstance = new window.google.maps.Map(document.getElementById('map'), {
+//             center: currentLocation,
+//             zoom: 15,
+//           });
+
+//           setMap(mapInstance);
+
+//           const marker = new window.google.maps.Marker({
+//             position: currentLocation,
+//             map: mapInstance,
+//             title: "Your Location"
+//           });
+
+//           setCurrentLocationMarker(marker);
+
+//           axios.get('http://localhost:4000/parking-slots')
+//             .then(response => {
+//               setParkingSlots(response.data);
+//               const nearestParking = findNearestParking(currentLocation, response.data);
+//               setNearestParkingLocation(nearestParking.location);
+//               setParkingSlotCapacity(nearestParking.capacity);
+//               const distance = calculateDistance(currentLocation.lat, currentLocation.lng, nearestParking.location.lat, nearestParking.location.lng);
+//               setDistanceToParking(distance);
+
+//               const directionsServiceInstance = new window.google.maps.DirectionsService();
+//               const directionsRendererInstance = new window.google.maps.DirectionsRenderer({
+//                 map: mapInstance,
+//                 suppressMarkers: true
+//               });
+
+//               setDirectionsService(directionsServiceInstance);
+//               setDirectionsRenderer(directionsRendererInstance);
+
+//               directionsServiceInstance.route(
+//                 {
+//                   origin: currentLocation,
+//                   destination: nearestParking.location,
+//                   travelMode: 'DRIVING',
+//                 },
+//                 (response, status) => {
+//                   if (status === 'OK') {
+//                     directionsRendererInstance.setDirections(response);
+//                   } else {
+//                     console.error('Directions request failed due to ' + status);
+//                   }
+//                 }
+//               );
+//             })
+//             .catch(error => {
+//               console.error('Error fetching parking slots:', error);
+//             });
+//         }, error => {
+//           console.error('Error getting current location:', error);
+//         }, { enableHighAccuracy: true });
+//       } else {
+//         console.error('Geolocation is not supported by this browser.');
+//       }
+//     } else {
+//       // Add markers for parking slots
+//       if (parkingSlots.length > 0) {
+//         const markers = parkingSlots.map(slot => {
+//           return new window.google.maps.Marker({
+//             position: slot.location,
+//             map: map,
+//             title: "Parking Slot"
+//           });
+//         });
+//       }
+//     }
+//   }, [map, parkingSlots]);
+
+//   // Function to calculate distance between two points using Haversine formula
+//   const calculateDistance = (lat1, lon1, lat2, lon2) => {
+//     const R = 6371; // Radius of the Earth in kilometers
+//     const dLat = (lat2 - lat1) * Math.PI / 180;
+//     const dLon = (lon2 - lon1) * Math.PI / 180;
+//     const a =
+//       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+//       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+//       Math.sin(dLon / 2) * Math.sin(dLon / 2);
+//     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+//     const distance = R * c; // Distance in kilometers
+//     return distance;
+//   };
+
+//   // Function to find the nearest parking location
+//   const findNearestParking = (currentLocation, parkingSlots) => {
+//     let minDistance = Infinity;
+//     let nearestParking = null;
+
+//     parkingSlots.forEach(slot => {
+//       const distance = calculateDistance(currentLocation.lat, currentLocation.lng, slot.location.lat, slot.location.lng);
+//       if (distance < minDistance) {
+//         minDistance = distance;
+//         nearestParking = slot;
+//       }
+//     });
+
+//     return nearestParking;
+//   };
+
+//   const handleBooking = () => {
+//     if (bookingQuantity > 0 && bookingQuantity <= parkingSlotCapacity) {
+//       setParkingSlotCapacity(prevCapacity => prevCapacity - bookingQuantity);
+//       setBookingQuantity(0);
+//     } else {
+//       alert('Please enter a valid booking quantity.');
+//     }
+//   };
+
+//   return (
+//     <div>
+//       <div id="map" style={{ height: '570px', width: '100%', marginTop: '10px' }} />
+//       {parkingSlotCapacity && <p>Parking Slot Capacity: {parkingSlotCapacity}</p>}
+//       {distanceToParking && <p>Distance to Parking: {distanceToParking.toFixed(1)} km</p>}
+//       <input
+//         type="number"
+//         value={bookingQuantity}
+//         onChange={(e) => setBookingQuantity(parseInt(e.target.value))}
+//         placeholder="Enter quantity"
+//         min="0"
+//       />
+//       <button onClick={handleBooking}>Book Slots</button>
+//     </div>
+//   );
+// };
+
+// export default Map;
+
 
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const Map = () => {
   const [map, setMap] = useState(null);
   const [directionsService, setDirectionsService] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
   const [currentLocationMarker, setCurrentLocationMarker] = useState(null);
-  const [nearestParkingLocation, setNearestParkingLocation] = useState(null);
+  const [selectedParkingLocation, setSelectedParkingLocation] = useState(null);
   const [parkingSlotCapacity, setParkingSlotCapacity] = useState(null);
   const [distanceToParking, setDistanceToParking] = useState(null);
   const [bookingQuantity, setBookingQuantity] = useState(0);
+  const [parkingSlots, setParkingSlots] = useState([]);
 
   useEffect(() => {
-    // Initialize the map and set current location marker
     if (!map) {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(position => {
@@ -579,82 +1003,128 @@ const Map = () => {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           };
+
           const mapInstance = new window.google.maps.Map(document.getElementById('map'), {
-            center: currentLocation, // Set center to user's current location
+            center: currentLocation,
             zoom: 15,
           });
+
           setMap(mapInstance);
-  
+
           const marker = new window.google.maps.Marker({
             position: currentLocation,
             map: mapInstance,
             title: "Your Location"
           });
+
           setCurrentLocationMarker(marker);
 
-          // Hardcoded parking location
-          const parkingLocation = {
-            lat: 11.0548,
-            lng: 76.9941
-          };
-          setNearestParkingLocation(parkingLocation);
+          axios.get('http://localhost:4000/parking-slots')
+            .then(response => {
+              setParkingSlots(response.data);
+              const nearestParking = findNearestParking(currentLocation, response.data);
+              setParkingSlotCapacity(nearestParking.capacity);
+              const distance = calculateDistance(currentLocation.lat, currentLocation.lng, nearestParking.location.lat, nearestParking.location.lng);
+              setDistanceToParking(distance);
 
-          // Hardcoded parking slot capacity
-          setParkingSlotCapacity(5); // Assume there are 50 parking slots available
+              const directionsServiceInstance = new window.google.maps.DirectionsService();
+              const directionsRendererInstance = new window.google.maps.DirectionsRenderer({
+                map: mapInstance,
+                suppressMarkers: true
+              });
 
-          // Calculate distance to parking location
-          const directionsServiceInstance = new window.google.maps.DirectionsService();
-          directionsServiceInstance.route(
-            {
-              origin: currentLocation,
-              destination: parkingLocation,
-              travelMode: 'DRIVING',
-            },
-            (response, status) => {
-              if (status === 'OK') {
-                const distance = response.routes[0].legs[0].distance.text;
-                setDistanceToParking(distance);
-              } else {
-                console.error('Directions request failed due to ' + status);
-              }
-            }
-          );
+              setDirectionsService(directionsServiceInstance);
+              setDirectionsRenderer(directionsRendererInstance);
+
+              directionsServiceInstance.route(
+                {
+                  origin: currentLocation,
+                  destination: nearestParking.location,
+                  travelMode: 'DRIVING',
+                },
+                (response, status) => {
+                  if (status === 'OK') {
+                    directionsRendererInstance.setDirections(response);
+                  } else {
+                    console.error('Directions request failed due to ' + status);
+                  }
+                }
+              );
+            })
+            .catch(error => {
+              console.error('Error fetching parking slots:', error);
+            });
         }, error => {
           console.error('Error getting current location:', error);
-        });
+        }, { enableHighAccuracy: true });
       } else {
         console.error('Geolocation is not supported by this browser.');
       }
+    } else {
+      // Add markers for parking slots
+      if (parkingSlots.length > 0) {
+        parkingSlots.forEach(slot => {
+          const marker = new window.google.maps.Marker({
+            position: slot.location,
+            map: map,
+            title: "Parking Slot"
+          });
+          marker.addListener('click', () => {
+            setSelectedParkingLocation(slot);
+            const currentLocation = currentLocationMarker.getPosition();
+            setParkingSlotCapacity(slot.capacity);
+            const distance = calculateDistance(currentLocation.lat(), currentLocation.lng(), slot.location.lat, slot.location.lng);
+            setDistanceToParking(distance);
 
+            directionsService.route(
+              {
+                origin: currentLocation,
+                destination: slot.location,
+                travelMode: 'DRIVING',
+              },
+              (response, status) => {
+                if (status === 'OK') {
+                  directionsRenderer.setDirections(response);
+                } else {
+                  console.error('Directions request failed due to ' + status);
+                }
+              }
+            );
+          });
+        });
+      }
     }
-  }, [map]);
+  }, [map, parkingSlots]);
 
-  useEffect(() => {
-    // Display route to nearest parking location
-    if (map && nearestParkingLocation) {
-      const directionsServiceInstance = new window.google.maps.DirectionsService();
-      const directionsRendererInstance = new window.google.maps.DirectionsRenderer();
-      setDirectionsService(directionsServiceInstance);
-      setDirectionsRenderer(directionsRendererInstance);
+  // Function to calculate distance between two points using Haversine formula
+  const calculateDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in kilometers
+    return distance;
+  };
 
-      directionsRendererInstance.setMap(map);
+  // Function to find the nearest parking location
+  const findNearestParking = (currentLocation, parkingSlots) => {
+    let minDistance = Infinity;
+    let nearestParking = null;
 
-      directionsServiceInstance.route(
-        {
-          origin: currentLocationMarker.getPosition(), // Use current location as origin
-          destination: nearestParkingLocation,
-          travelMode: 'DRIVING',
-        },
-        (response, status) => {
-          if (status === 'OK') {
-            directionsRendererInstance.setDirections(response);
-          } else {
-            console.error('Directions request failed due to ' + status);
-          }
-        }
-      );
-    }
-  }, [map, nearestParkingLocation, currentLocationMarker]);
+    parkingSlots.forEach(slot => {
+      const distance = calculateDistance(currentLocation.lat, currentLocation.lng, slot.location.lat, slot.location.lng);
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestParking = slot;
+      }
+    });
+
+    return nearestParking;
+  };
 
   const handleBooking = () => {
     if (bookingQuantity > 0 && bookingQuantity <= parkingSlotCapacity) {
@@ -668,11 +1138,11 @@ const Map = () => {
   return (
     <div>
       <div id="map" style={{ height: '570px', width: '100%', marginTop: '10px' }} />
-      {parkingSlotCapacity && <p>Parking Slot Capacity: {parkingSlotCapacity}</p>}
-      {distanceToParking && <p>Distance to Parking: {distanceToParking}</p>}
-      <input 
-        type="number" 
-        value={bookingQuantity} 
+      {selectedParkingLocation && <p>Selected Parking Slot Capacity: {parkingSlotCapacity}</p>}
+      {distanceToParking && <p>Distance to Parking: {distanceToParking.toFixed(1)} km</p>}
+      <input
+        type="number"
+        value={bookingQuantity}
         onChange={(e) => setBookingQuantity(parseInt(e.target.value))}
         placeholder="Enter quantity"
         min="0"
